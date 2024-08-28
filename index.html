@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Formas - Desafío de Reflejos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --background-color: #ecf0f1;
+            --text-color: #34495e;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+        .game-container {
+            text-align: center;
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            color: var(--secondary-color);
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        #game-info {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+        .shape {
+            width: 100px;
+            height: 100px;
+            margin: 1rem auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .shape svg {
+            width: 100%;
+            height: 100%;
+        }
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .shape-button {
+            width: 60px;
+            height: 60px;
+            background-color: var(--secondary-color);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .shape-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .shape-button:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+        .shape-button svg {
+            width: 70%;
+            height: 70%;
+        }
+        button {
+            padding: 0.6rem 1rem;
+            font-size: 0.9rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        #game-area, #ranking {
+            margin-top: 1rem;
+        }
+        .ranking {
+            text-align: left;
+        }
+        .ranking h3 {
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+        .ranking ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .ranking li {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.3rem 0;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.9rem;
+        }
+        .ranking li:last-child {
+            border-bottom: none;
+        }
+        input[type="text"] {
+            padding: 0.6rem;
+            font-size: 0.9rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 5px;
+            margin-right: 0.5rem;
+            width: 60%;
+        }
+        .score {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 1rem 0;
+        }
+        .game-over-buttons {
+            margin-top: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Juego de Formas</h1>
+        <div id="game-area"></div>
+        <div id="ranking"></div>
+    </div>
+
+    <script>
+        const shapes = ['square', 'triangle', 'circle'];
+        let currentShape = '';
+        let score = 0;
+        let timeLeft = 0;
+        let gameActive = false;
+        let lastChangeTime = 0;
+        let gameMode = '';
+        let gameLoopInterval;
+
+        function startGame(mode) {
+            score = 0;
+            timeLeft = mode === 'normal' ? 30 : 10;
+            gameActive = true;
+            gameMode = mode;
+            setupGameArea();
+            changeShape();
+            updateDisplay();
+            clearInterval(gameLoopInterval);
+            gameLoopInterval = setInterval(gameLoop, 100);
+        }
+
+        function setupGameArea() {
+            const gameArea = document.getElementById('game-area');
+            gameArea.innerHTML = `
+                <div id="game-info"></div>
+                <div id="current-shape" class="shape"></div>
+                <div class="buttons">
+                    ${shapes.map(shape => `
+                        <button class="shape-button" data-shape="${shape}">
+                            ${getShapeSVG(shape)}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+
+            const shapeButtons = gameArea.querySelectorAll('.shape-button');
+            shapeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const shape = this.getAttribute('data-shape');
+                    handleShapeClick(shape);
+                });
+            });
+        }
+
+        function changeShape() {
+            const oldShape = currentShape;
+            const newShape = shapes[Math.floor(Math.random() * shapes.length)];
+            if (newShape === oldShape) {
+                changeShape();
+            } else {
+                currentShape = newShape;
+                lastChangeTime = Date.now();
+                document.getElementById('current-shape').innerHTML = getShapeSVG(currentShape, true);
+            }
+        }
+
+        function handleShapeClick(shape) {
+            if (!gameActive) return;
+
+            if (shape === currentShape) {
+                const reactionTime = (Date.now() - lastChangeTime) / 1000;
+                const points = Math.max(0, Math.min(100, Math.floor(100 * (1 - reactionTime / 2))));
+                score += points;
+                
+                if (gameMode === 'survival') {
+                    timeLeft += 0.5;
+                }
+                
+                changeShape();
+            } else {
+                if (gameMode === 'normal') {
+                    score = Math.max(0, score - 5);
+                } else {
+                    timeLeft = Math.max(0, timeLeft - 0.5);
+                }
+            }
+
+            updateDisplay();
+        }
+
+        function gameLoop() {
+            if (gameActive && timeLeft > 0) {
+                timeLeft = Math.max(0, timeLeft - 0.1);
+                updateDisplay();
+            } else if (timeLeft <= 0) {
+                gameActive = false;
+                clearInterval(gameLoopInterval);
+                showGameOver();
+            }
+        }
+
+        function updateDisplay() {
+            const gameInfo = document.getElementById('game-info');
+            gameInfo.innerHTML = `
+                <p>Puntuación: ${score}</p>
+                <p>Tiempo restante: ${timeLeft.toFixed(1)}s</p>
+                <p>Modo: ${gameMode === 'normal' ? 'Normal' : 'Supervivencia'}</p>
+            `;
+        }
+
+        function getShapeSVG(shape, isCurrent = false) {
+            const color = isCurrent ? 'black' : 'white';
+            const strokeWidth = isCurrent ? '7' : '10';
+            switch(shape) {
+                case 'square':
+                    return `<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" fill="none" stroke="${color}" stroke-width="${strokeWidth}"/></svg>`;
+                case 'triangle':
+                    return `<svg viewBox="0 0 100 100"><polygon points="50,10 90,90 10,90" fill="none" stroke="${color}" stroke-width="${strokeWidth}"/></svg>`;
+                case 'circle':
+                    return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="${color}" stroke-width="${strokeWidth}"/></svg>`;
+                default:
+                    return '';
+            }
+        }
+
+        function showGameOver() {
+            const gameArea = document.getElementById('game-area');
+            gameArea.innerHTML = `
+                <h2>¡Juego Terminado!</h2>
+                <div class="score">Tu puntuación: ${score}</div>
+                <input type="text" id="playerName" placeholder="Ingresa tu nombre">
+                <div class="game-over-buttons">
+                    <button id="submitScore">Enviar Puntuación</button>
+                    <button id="backToMenu">Volver al Menú Principal</button>
+                </div>
+            `;
+
+            document.getElementById('submitScore').addEventListener('click', submitScore);
+            document.getElementById('backToMenu').addEventListener('click', showMainMenu);
+        }
+
+        function submitScore() {
+            const playerName = document.getElementById('playerName').value;
+            if (playerName) {
+                const ranking = JSON.parse(localStorage.getItem('ranking') || '[]');
+                ranking.push({ name: playerName, score: score, mode: gameMode });
+                ranking.sort((a, b) => b.score - a.score);
+                localStorage.setItem('ranking', JSON.stringify(ranking.slice(0, 10)));
+                showMainMenu();
+            }
+        }
+
+        function showMainMenu() {
+            const gameArea = document.getElementById('game-area');
+            gameArea.innerHTML = `
+                <div class="buttons">
+                    <button id="normalMode">Modo Normal</button>
+                    <button id="survivalMode">Modo Supervivencia</button>
+                    <button id="showRanking">Ver Ranking</button>
+                </div>
+            `;
+            document.getElementById('normalMode').addEventListener('click', () => startGame('normal'));
+            document.getElementById('survivalMode').addEventListener('click', () => startGame('survival'));
+            document.getElementById('showRanking').addEventListener('click', showRanking);
+        }
+
+        function showRanking() {
+            const ranking = JSON.parse(localStorage.getItem('ranking') || '[]');
+            const gameArea = document.getElementById('game-area');
+            
+            const normalRanking = ranking.filter(entry => entry.mode === 'normal');
+            const survivalRanking = ranking.filter(entry => entry.mode === 'survival');
+
+            gameArea.innerHTML = `
+                <div class="ranking">
+                    <h3>Ranking Modo Normal</h3>
+                    ${getRankingList(normalRanking)}
+                </div>
+                <div class="ranking">
+                    <h3>Ranking Modo Supervivencia</h3>
+                    ${getRankingList(survivalRanking)}
+                </div>
+                <button id="closeRanking">Cerrar Ranking</button>
+            `;
+            document.getElementById('closeRanking').addEventListener('click', showMainMenu);
+        }
+
+        function getRankingList(ranking) {
+            if (ranking.length === 0) {
+                return '<p>Aún no hay puntuaciones registradas.</p>';
+            }
+            return `
+                <ul>
+                    ${ranking.map((entry, index) => `
+                        <li>
+                            <span>${index + 1}. ${entry.name}</span>
+                            <span>${entry.score} pts</span>
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
+        }
+
+        showMainMenu();
+    </script>
+</body>
+</html>
