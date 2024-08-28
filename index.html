@@ -37,13 +37,18 @@
             font-size: 2rem;
             margin-bottom: 1.5rem;
         }
+        h2 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
         #game-info {
             font-size: 1rem;
             margin-bottom: 1rem;
         }
         .shape {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             margin: 1rem auto;
             display: flex;
             justify-content: center;
@@ -56,15 +61,15 @@
         .buttons {
             display: flex;
             justify-content: center;
-            gap: 0.5rem;
+            gap: 1rem;
             margin-top: 1rem;
         }
         .shape-button {
-            width: 60px;
-            height: 60px;
+            width: 90px;
+            height: 90px;
             background-color: var(--secondary-color);
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             display: flex;
             justify-content: center;
@@ -73,15 +78,15 @@
         }
         .shape-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         .shape-button:active {
             transform: translateY(0);
             box-shadow: none;
         }
         .shape-button svg {
-            width: 70%;
-            height: 70%;
+            width: 80%;
+            height: 80%;
         }
         button {
             padding: 0.6rem 1rem;
@@ -153,7 +158,7 @@
         .menu-buttons button {
             width: 100%;
         }
-        .game-over-popup {
+        .popup {
             position: fixed;
             top: 0;
             left: 0;
@@ -165,7 +170,7 @@
             align-items: center;
             z-index: 1000;
         }
-        .game-over-content {
+        .popup-content {
             background-color: white;
             padding: 2rem;
             border-radius: 15px;
@@ -184,6 +189,18 @@
             cursor: pointer;
             color: var(--secondary-color);
         }
+        .mode-info {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+        .mode-info h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
         @media (max-width: 480px) {
             .game-container {
                 padding: 1rem;
@@ -192,14 +209,14 @@
                 font-size: 1.5rem;
             }
             .shape {
+                width: 100px;
+                height: 100px;
+            }
+            .shape-button {
                 width: 80px;
                 height: 80px;
             }
-            .shape-button {
-                width: 50px;
-                height: 50px;
-            }
-            .game-over-content {
+            .popup-content {
                 padding: 1.5rem;
             }
         }
@@ -237,6 +254,7 @@
         function setupGameArea() {
             const gameArea = document.getElementById('game-area');
             gameArea.innerHTML = `
+                <h2>${gameMode === 'normal' ? 'Modo Normal' : 'Modo Supervivencia'}</h2>
                 <div id="game-info"></div>
                 <div id="current-shape" class="shape"></div>
                 <div class="buttons">
@@ -309,7 +327,6 @@
             gameInfo.innerHTML = `
                 <p>Puntuación: ${score}</p>
                 <p>Tiempo restante: ${timeLeft.toFixed(1)}s</p>
-                <p>Modo: ${gameMode === 'normal' ? 'Normal' : 'Supervivencia'}</p>
             `;
         }
 
@@ -329,25 +346,14 @@
         }
 
         function showGameOver() {
-            const popup = document.createElement('div');
-            popup.className = 'game-over-popup';
-            popup.innerHTML = `
-                <div class="game-over-content">
-                    <button class="close-button" id="closePopup">&times;</button>
-                    <h2>¡Juego Terminado!</h2>
-                    <div class="score">Tu puntuación: ${score}</div>
-                    <input type="text" id="playerName" placeholder="Ingresa tu nombre">
-                    <div class="game-over-buttons">
-                        <button id="submitScore">Enviar Puntuación</button>
-                    </div>
+            showPopup('game-over', `
+                <h2>¡Juego Terminado!</h2>
+                <div class="score">Tu puntuación: ${score}</div>
+                <input type="text" id="playerName" placeholder="Ingresa tu nombre">
+                <div class="game-over-buttons">
+                    <button id="submitScore">Enviar Puntuación</button>
                 </div>
-            `;
-            document.body.appendChild(popup);
-
-            document.getElementById('closePopup').addEventListener('click', () => {
-                document.body.removeChild(popup);
-                showMainMenu();
-            });
+            `, true);
 
             document.getElementById('submitScore').addEventListener('click', submitScore);
         }
@@ -374,21 +380,29 @@
                     <button id="normalMode">Modo Normal</button>
                     <button id="survivalMode">Modo Supervivencia</button>
                     <button id="showRanking">Ver Ranking</button>
+                    <button id="showInfo">Información del Juego</button>
                 </div>
             `;
             document.getElementById('normalMode').addEventListener('click', () => startGame('normal'));
             document.getElementById('survivalMode').addEventListener('click', () => startGame('survival'));
             document.getElementById('showRanking').addEventListener('click', showRanking);
+            document.getElementById('showInfo').addEventListener('click', showGameInfo);
+        }
+
+        function showGameInfo() {
+            showPopup('game-info', `
+                <h3>Modos de Juego</h3>
+                <p><strong>Modo Normal:</strong> Tienes 30 segundos para obtener la mayor puntuación posible. Cada error resta 5 puntos.</p>
+                <p><strong>Modo Supervivencia:</strong> Comienza con 10 segundos. Cada acierto añade 0.5 segundos. Cada error resta 0.5 segundos. ¡Sobrevive el mayor tiempo posible!</p>
+            `);
         }
 
         function showRanking() {
             const ranking = JSON.parse(localStorage.getItem('ranking') || '[]');
-            const gameArea = document.getElementById('game-area');
-            
             const normalRanking = ranking.filter(entry => entry.mode === 'normal');
             const survivalRanking = ranking.filter(entry => entry.mode === 'survival');
 
-            gameArea.innerHTML = `
+            showPopup('ranking', `
                 <div class="ranking">
                     <h3>Ranking Modo Normal</h3>
                     ${getRankingList(normalRanking)}
@@ -397,9 +411,7 @@
                     <h3>Ranking Modo Supervivencia</h3>
                     ${getRankingList(survivalRanking)}
                 </div>
-                <button id="closeRanking">Cerrar Ranking</button>
-            `;
-            document.getElementById('closeRanking').addEventListener('click', showMainMenu);
+            `);
         }
 
         function getRankingList(ranking) {
@@ -416,6 +428,25 @@
                     `).join('')}
                 </ul>
             `;
+        }
+
+        function showPopup(id, content, isGameOver = false) {
+            const popup = document.createElement('div');
+            popup.className = 'popup';
+            popup.innerHTML = `
+                <div class="popup-content">
+                    <button class="close-button" id="closePopup">&times;</button>
+                    ${content}
+                </div>
+            `;
+            document.body.appendChild(popup);
+
+            document.getElementById('closePopup').addEventListener('click', () => {
+                document.body.removeChild(popup);
+                if (isGameOver) {
+                    showMainMenu();
+                }
+            });
         }
 
         showMainMenu();
