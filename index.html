@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juego de Formas - Desafío de Reflejos</title>
+    <title>ShapeShift Challenge - Reflex Game</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -224,7 +224,7 @@
 </head>
 <body>
     <div class="game-container">
-        <h1>Juego de Formas</h1>
+        <h1>ShapeShift Challenge</h1>
         <div id="game-area"></div>
         <div id="ranking"></div>
     </div>
@@ -254,7 +254,7 @@
         function setupGameArea() {
             const gameArea = document.getElementById('game-area');
             gameArea.innerHTML = `
-                <h2>${gameMode === 'normal' ? 'Modo Normal' : 'Modo Supervivencia'}</h2>
+                <h2>${gameMode === 'normal' ? 'Normal Mode' : 'Survival Mode'}</h2>
                 <div id="game-info"></div>
                 <div id="current-shape" class="shape"></div>
                 <div class="buttons">
@@ -325,8 +325,8 @@
         function updateDisplay() {
             const gameInfo = document.getElementById('game-info');
             gameInfo.innerHTML = `
-                <p>Puntuación: ${score}</p>
-                <p>Tiempo restante: ${timeLeft.toFixed(1)}s</p>
+                <p>Score: ${score}</p>
+                <p>Time left: ${timeLeft.toFixed(1)}s</p>
             `;
         }
 
@@ -347,11 +347,11 @@
 
         function showGameOver() {
             showPopup('game-over', `
-                <h2>¡Juego Terminado!</h2>
-                <div class="score">Tu puntuación: ${score}</div>
-                <input type="text" id="playerName" placeholder="Ingresa tu nombre">
+                <h2>Game Over!</h2>
+                <div class="score">Your score: ${score}</div>
+                <input type="text" id="playerName" placeholder="Enter your name">
                 <div class="game-over-buttons">
-                    <button id="submitScore">Enviar Puntuación</button>
+                    <button id="submitScore">Submit Score</button>
                 </div>
             `, true);
 
@@ -367,7 +367,7 @@
                 localStorage.setItem('ranking', JSON.stringify(ranking.slice(0, 10)));
                 
                 const submitButton = document.getElementById('submitScore');
-                submitButton.textContent = 'Puntuación Enviada';
+                submitButton.textContent = 'Score Submitted';
                 submitButton.classList.add('success');
                 submitButton.disabled = true;
             }
@@ -377,10 +377,10 @@
             const gameArea = document.getElementById('game-area');
             gameArea.innerHTML = `
                 <div class="menu-buttons">
-                    <button id="normalMode">Modo Normal</button>
-                    <button id="survivalMode">Modo Supervivencia</button>
-                    <button id="showRanking">Ver Ranking</button>
-                    <button id="showInfo">Información del Juego</button>
+                    <button id="normalMode">Normal Mode</button>
+                    <button id="survivalMode">Survival Mode</button>
+                    <button id="showRanking">View Ranking</button>
+                    <button id="showInfo">Game Info</button>
                 </div>
             `;
             document.getElementById('normalMode').addEventListener('click', () => startGame('normal'));
@@ -391,9 +391,9 @@
 
         function showGameInfo() {
             showPopup('game-info', `
-                <h3>Modos de Juego</h3>
-                <p><strong>Modo Normal:</strong> Tienes 30 segundos para obtener la mayor puntuación posible. Cada error resta 5 puntos.</p>
-                <p><strong>Modo Supervivencia:</strong> Comienza con 10 segundos. Cada acierto añade 0.5 segundos. Cada error resta 0.5 segundos. ¡Sobrevive el mayor tiempo posible!</p>
+                <h3>Game Modes</h3>
+                <p><strong>Normal Mode:</strong> You have 30 seconds to get the highest score possible. Each mistake deducts 5 points.</p>
+                <p><strong>Survival Mode:</strong> Starts with 10 seconds. Each correct answer adds 0.5 seconds. Each mistake deducts 0.5 seconds. Survive as long as you can!</p>
             `);
         }
 
@@ -404,11 +404,11 @@
 
             showPopup('ranking', `
                 <div class="ranking">
-                    <h3>Ranking Modo Normal</h3>
+                    <h3>Normal Mode Ranking</h3>
                     ${getRankingList(normalRanking)}
                 </div>
                 <div class="ranking">
-                    <h3>Ranking Modo Supervivencia</h3>
+                    <h3>Survival Mode Ranking</h3>
                     ${getRankingList(survivalRanking)}
                 </div>
             `);
@@ -416,7 +416,7 @@
 
         function getRankingList(ranking) {
             if (ranking.length === 0) {
-                return '<p>Aún no hay puntuaciones registradas.</p>';
+                return '<p>No scores recorded yet.</p>';
             }
             return `
                 <ul>
@@ -431,7 +431,9 @@
         }
 
         function showPopup(id, content, isGameOver = false) {
-            const popup = document.createElement('div');
+            const popup =
+
+ document.createElement('div');
             popup.className = 'popup';
             popup.innerHTML = `
                 <div class="popup-content">
